@@ -1,13 +1,10 @@
 #include <stdio.h>
 #include <time.h>
 #include "deck.h"
+#include "game.h"
 int  main () {
     srand(time(NULL));
-    deck_t deck = newDeck(1);
-    deck_t deck2 = newDeck(2);
-    mixDeck(&deck);
-    mixDeck(&deck2);
-    printDeck(deck);
-    printDeck(deck2);
+    startGame();
+
     return 0;
 }

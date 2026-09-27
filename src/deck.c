@@ -21,6 +21,7 @@ deck_t newDeck (int nbOfDeck) {
     deck_t d;
     d.nbOfDeck=nbOfDeck;
     d.cardsLength=DECKOFCARDS*nbOfDeck;
+    d.currentCard=0;
     fillDeck(&d);
     return d;
 }
@@ -32,7 +33,7 @@ void printCard(card_t c) {
 void printDeck(deck_t d) {
     printf("Number of deck used : %d\n", d.nbOfDeck);
     printf("[ ");
-    for (int i=0; i<d.cardsLength-1; i++) {
+    for (int i=d.currentCard; i<d.cardsLength-1; i++) {
         printCard(d.card[i]);
         printf(", ");
     }

@@ -14,6 +14,7 @@ typedef struct {
     int nbOfDeck;
     int cardsLength;
     card_t card[MAX_CARDS];
+    int currentCard;
 } deck_t;
 
 void fillDeck(deck_t *deck);
