@@ -38,6 +38,30 @@ void hit(hand_t *hand, deck_t *deck) {
         printf("Cannot hit, hand is full.\n");
     }
 }
+int handValue(hand_t hand) {
+    int value = 0;
+    int aces = 0;
+
+    for (int i=0; i<hand.nbOfCards; i++) {
+        char val = hand.cards[i].val;
+        if (val >= '2' && val <= '9') {
+            value += val - '0'; // Convert char to int
+        } else if (val == 'T' || val == 'J' || val == 'Q' || val == 'K') {
+            value += 10;
+        } else if (val == 'A') {
+            aces++;
+            value += 11; // Initially count Ace as 11
+        }
+    }
+
+    // Adjust for Aces if value is over 21
+    while (value > 21 && aces > 0) {
+        value -= 10; // Count one Ace as 1 instead of 11
+        aces--;
+    }
+
+    return value;
+}
 void printHand(hand_t hand) {
     printf("Hand: [ ");
     for (int i = 0; i < hand.nbOfCards; i++) {
@@ -49,26 +73,22 @@ void printHand(hand_t hand) {
     printf(" ]\n");
 }
 
-void startGame() {
-    deck_t deck = newDeck(1);
-    mixDeck(&deck);
-    printDeck(deck);
-
-    player_t player = newPlayer(1000, 50);
-    dealer_t dealer = newDealer(); // Initialize dealer hand
-    // Create a player with a bankroll of 1000 and a bet of 50
-    for (int i = 0;i<player.nbOfHands;i++){
-        hit(&player.hands[i], &deck);
+void startHand(deck_t *deck, player_t *player, dealer_t *dealer) {
+    mixDeck(deck);
+    printDeck(*deck);
+    for (int i = 0;i<player->nbOfHands;i++){
+        hit(&player->hands[i], deck);
     }
-    hit(&dealer.hand, &deck);
-    for (int i = 0;i<player.nbOfHands;i++){
-        hit(&player.hands[i], &deck);
+    hit(&dealer->hand, deck);
+    for (int i = 0;i<player->nbOfHands;i++){
+        hit(&player->hands[i], deck);
     }
-    hit(&dealer.hand, &deck);
-    printf("%d\n", dealer.hand.nbOfCards);
-    printHand(player.hands[0]); // Print the player's hand
-    printHand(dealer.hand); // Print the dealer's hand
-    printDeck(deck); // Print the remaining cards in the deck
-
+    hit(&dealer->hand, deck);
+    printf("%d\n", dealer->hand.nbOfCards);
+    printHand(player->hands[0]); // Print the player's hand
+    printHand(dealer->hand); // Print the dealer's hand
+    printDeck(*deck); // Print the remaining cards in the deck
 }
+
+void inGame() {}
 

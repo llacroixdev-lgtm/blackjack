@@ -4,7 +4,10 @@
 #include "game.h"
 int  main () {
     srand(time(NULL));
-    startGame();
+    deck_t deck = newDeck(1);
+    player_t player = newPlayer(1000, 50);
+    dealer_t dealer = newDealer();
+    startHand(&deck, &player, &dealer);
 
     return 0;
 }

@@ -26,6 +26,6 @@ typedef struct {
 player_t newPlayer(int bankroll, int bet);
 void hit(hand_t *hand, deck_t *deck);
 void printHand(hand_t hand);
-void startGame();
+void startHand(deck_t *deck, player_t *player, dealer_t *dealer);
 
 dealer_t newDealer();
