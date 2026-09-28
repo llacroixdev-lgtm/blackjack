@@ -6,7 +6,8 @@ player_t newPlayer(int bankroll, int bet) {
     player_t p;
     p.bankroll = bankroll;
     p.bet = bet;
-    p.nbOfHands = 1; // Assuming the player starts with one hand
+    p.nbOfHands = 1;
+    p.currentHand = 0; // Assuming the player starts with one hand
     for (int i = 0; i < p.nbOfHands; i++) {
         p.hands[i].nbOfCards = 0;
         p.hands[i].isBlackjack = 0;
@@ -37,6 +38,26 @@ void hit(hand_t *hand, deck_t *deck) {
     } else {
         printf("Cannot hit, hand is full.\n");
     }
+}
+
+hand_t split(hand_t *hand, deck_t *deck) {
+    if (hand->cards[0].val==hand->cards[1].val) {
+        hand_t newHand;
+        newHand.cards[0]=hand->cards[1];
+        hand->nbOfCards--;
+        newHand.nbOfCards = 1;
+        hit(&newHand, deck);
+        hit(hand, deck);
+        newHand.isBusted = 0;
+        newHand.isStanding = 0;
+        newHand.isDoubledDown = 0;
+        newHand.isSplit = 1;
+        hand->isSplit=1;
+        printHand(*hand);
+        printHand(newHand);
+        return newHand;
+    }
+    return *hand;
 }
 int handValue(hand_t hand) {
     int value = 0;
@@ -90,5 +111,20 @@ void startHand(deck_t *deck, player_t *player, dealer_t *dealer) {
     printDeck(*deck); // Print the remaining cards in the deck
 }
 
-void inGame() {}
+void playerTurn(deck_t *deck, player_t *player, dealer_t *dealer) {
+    char action;
+    hand_t hand =player->hands[player->currentHand];
+    scanf("%c", &action);
+    switch (action) {
+        case 'S' :
+            split(&hand, deck);
+            break;
+        case 'H' :
+            hit(&hand, deck);
+        case 'D' :
+            return ;
+        case 'N' :
+            return ;
+    }
+}
 

@@ -14,3 +14,6 @@ clean:
 	rm -f src/main.o src/deck.o src/game.o blackjack
 
 .PHONY: clean
+
+run : blackjack
+	./blackjack
