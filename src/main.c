@@ -9,8 +9,11 @@ int  main () {
     dealer_t dealer = newDealer();
 
     startHand(&deck, &player, &dealer);
-    playerTurn(&deck, &player, &dealer);
-
-
+    updateAction(&player);
+    while (player.currentHand < player.nbOfHands) {
+        playerTurn(&deck, &player);
+        updateAction(&player);
+    }
+    //delearTurn
     return 0;
 }

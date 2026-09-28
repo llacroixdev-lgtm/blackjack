@@ -6,7 +6,7 @@ player_t newPlayer(int bankroll, int bet) {
     player_t p;
     p.bankroll = bankroll;
     p.bet = bet;
-    p.nbOfHands = 1;
+    p.nbOfHands = 3;
     p.currentHand = 0; // Assuming the player starts with one hand
     for (int i = 0; i < p.nbOfHands; i++) {
         p.hands[i].nbOfCards = 0;
@@ -31,34 +31,53 @@ dealer_t newDealer() {
 }
 
 void hit(hand_t *hand, deck_t *deck) {
+    printf("hit\n");
     if (hand->nbOfCards < 10) { // Check if the hand has less than 10 cards
         hand->cards[hand->nbOfCards] = deck->card[deck->currentCard]; // Add the last card from the deck to the hand
-        hand->nbOfCards++; // Increment the number of cards in the hand
+        hand->nbOfCards++;
+        printHand(*hand); // Increment the number of cards in the hand
         deck->currentCard++; // Move to the next card in the deck
     } else {
         printf("Cannot hit, hand is full.\n");
     }
 }
 
-hand_t split(hand_t *hand, deck_t *deck) {
-    if (hand->cards[0].val==hand->cards[1].val) {
+void doubledown(player_t *player, deck_t *deck) {
+    printf("doubledown\n");
+    hand_t *hand=&(player->hands[player->currentHand]);
+    hit(hand, deck);
+    hand->isDoubledDown = 1;
+    hand->isStanding = 1;
+    player->currentHand++;
+}
+
+void split(player_t *player, deck_t *deck) {
+    printf("split\n");
+    //if (hand->cards[0].val==hand->cards[1].val) {
         hand_t newHand;
+        hand_t *hand=&(player->hands[player->currentHand]);
         newHand.cards[0]=hand->cards[1];
         hand->nbOfCards--;
+        hand->isSplit=1;
         newHand.nbOfCards = 1;
-        hit(&newHand, deck);
-        hit(hand, deck);
         newHand.isBusted = 0;
         newHand.isStanding = 0;
         newHand.isDoubledDown = 0;
         newHand.isSplit = 1;
-        hand->isSplit=1;
-        printHand(*hand);
-        printHand(newHand);
-        return newHand;
-    }
-    return *hand;
+        hit(&newHand, deck);
+        hit(hand, deck);
+        player->hands[player->currentHand+1]=newHand;
+        player->nbOfHands++;
+    //}
+
 }
+
+void stay(player_t *player) {
+    printf("stay\n");
+    player->hands[player->currentHand].isStanding = 1;
+    player->currentHand++;
+}
+
 int handValue(hand_t hand) {
     int value = 0;
     int aces = 0;
@@ -84,6 +103,7 @@ int handValue(hand_t hand) {
     return value;
 }
 void printHand(hand_t hand) {
+    printf("printHand\n");
     printf("Hand: [ ");
     for (int i = 0; i < hand.nbOfCards; i++) {
         printCard(hand.cards[i]);
@@ -91,12 +111,12 @@ void printHand(hand_t hand) {
             printf(", ");
         }
     }
-    printf(" ]\n");
+    printf(" ], Score : %d\n", handValue(hand));
 }
 
 void startHand(deck_t *deck, player_t *player, dealer_t *dealer) {
+    printf("startHand\n");
     mixDeck(deck);
-    printDeck(*deck);
     for (int i = 0;i<player->nbOfHands;i++){
         hit(&player->hands[i], deck);
     }
@@ -105,26 +125,64 @@ void startHand(deck_t *deck, player_t *player, dealer_t *dealer) {
         hit(&player->hands[i], deck);
     }
     hit(&dealer->hand, deck);
-    printf("%d\n", dealer->hand.nbOfCards);
-    printHand(player->hands[0]); // Print the player's hand
-    printHand(dealer->hand); // Print the dealer's hand
-    printDeck(*deck); // Print the remaining cards in the deck
+    printf("Hand's dealer.\n");
+    printf("[ ");
+    printCard(dealer->hand.cards[0]);
+    printf(", XX ] Score : %d\n", dealer->hand.cards->val-'0');
+     // Print the player's hand
+    printf("Your Hand.\n");
+    printHand(player->hands[0]); // Print the dealer's hand
+    // printDeck(*deck); // Print the remaining cards in the deck
 }
 
-void playerTurn(deck_t *deck, player_t *player, dealer_t *dealer) {
+/*int isDealerTurn(player_t *player) {
+    if (player_t->nbOfHands == player->currentHand && player->currentHand.isStanding) dealerTurn();
+}*/
+
+void playerTurn(deck_t *deck, player_t *player) {
+    printf("playerTurn\n");
+    printHand(player->hands[player->currentHand]);
     char action;
-    hand_t hand =player->hands[player->currentHand];
+    hand_t *hand = &(player->hands[player->currentHand]);
     scanf("%c", &action);
     switch (action) {
         case 'S' :
-            split(&hand, deck);
+            split(player, deck);
+            
             break;
         case 'H' :
-            hit(&hand, deck);
+            hit(hand, deck);
+            break;
         case 'D' :
-            return ;
+            doubledown(player, deck);
+            break;
         case 'N' :
-            return ;
+            stay(player);
+            break;
     }
+    
 }
+
+void updateAction(player_t *player) {
+    printf("updateAction\n");
+    hand_t *hand = &(player->hands[player->currentHand]);
+    int score = handValue(*hand);
+    if (score > 21) {
+        hand->isBusted = 1;
+    }
+    else if (score == 21) {
+        if (hand->nbOfCards == 2 && hand->isSplit == 0) hand->isBlackjack = 1;
+        else hand->isStanding = 1;
+    }
+
+}
+
+
+/*void dealerTurn(dealer_t *dealer, deck_t *deck) {
+    printf("dealerTurn\n");
+    while (handValue(dealer->hand) < 17) {
+        hit(&(dealer->hand), deck);
+    }
+}*/
+
 
