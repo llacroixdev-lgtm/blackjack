@@ -1,11 +1,14 @@
 #include <stdio.h>
+#include <string.h>
 #include <time.h>
 #include "deck.h"
 #include "game.h"
 int  main () {
     srand(time(NULL));
     deck_t deck = newDeck(1);
-    player_t player = newPlayer(1000, 50);
+    int nbOfHands;
+    scanf("%d", &nbOfHands);
+    player_t player = newPlayer(1000, 50, nbOfHands);
     dealer_t dealer = newDealer();
 
     startHand(&deck, &player, &dealer);
@@ -14,6 +17,8 @@ int  main () {
         playerTurn(&deck, &player);
         updateAction(&player);
     }
-    //delearTurn
+    dealerTurn(&dealer, &deck);
+    getResult(&player, &dealer);
+    //printResult(&dealer, &player);
     return 0;
 }

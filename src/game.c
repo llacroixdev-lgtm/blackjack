@@ -1,12 +1,13 @@
 #include <stdio.h>
+#include <string.h>
 #include "deck.h"
 #include "game.h"
 
-player_t newPlayer(int bankroll, int bet) {
+player_t newPlayer(int bankroll, int bet, int nbOfHands) {
     player_t p;
     p.bankroll = bankroll;
     p.bet = bet;
-    p.nbOfHands = 3;
+    p.nbOfHands = nbOfHands;
     p.currentHand = 0; // Assuming the player starts with one hand
     for (int i = 0; i < p.nbOfHands; i++) {
         p.hands[i].nbOfCards = 0;
@@ -17,6 +18,7 @@ player_t newPlayer(int bankroll, int bet) {
         p.hands[i].isSurrendered = 0;
         p.hands[i].isSplit = 0;
         p.hands[i].isInsured = 0;
+        strcpy(p.hands[i].res, "");
     }
     return p;
 }
@@ -31,11 +33,10 @@ dealer_t newDealer() {
 }
 
 void hit(hand_t *hand, deck_t *deck) {
-    printf("hit\n");
+    //printf("hit\n");
     if (hand->nbOfCards < 10) { // Check if the hand has less than 10 cards
         hand->cards[hand->nbOfCards] = deck->card[deck->currentCard]; // Add the last card from the deck to the hand
         hand->nbOfCards++;
-        printHand(*hand); // Increment the number of cards in the hand
         deck->currentCard++; // Move to the next card in the deck
     } else {
         printf("Cannot hit, hand is full.\n");
@@ -43,7 +44,7 @@ void hit(hand_t *hand, deck_t *deck) {
 }
 
 void doubledown(player_t *player, deck_t *deck) {
-    printf("doubledown\n");
+    //printf("doubledown\n");
     hand_t *hand=&(player->hands[player->currentHand]);
     hit(hand, deck);
     hand->isDoubledDown = 1;
@@ -73,9 +74,21 @@ void split(player_t *player, deck_t *deck) {
 }
 
 void stay(player_t *player) {
-    printf("stay\n");
+    //printf("stay\n");
     player->hands[player->currentHand].isStanding = 1;
     player->currentHand++;
+}
+
+int cardValue(card_t card) {
+    char val = card.val;
+    if (val >= '2' && val <= '9') {
+        return val - '0'; // Convert char to int
+    } else if (val == 'T' || val == 'J' || val == 'Q' || val == 'K') {
+        return 10;
+    } else if (val == 'A') {
+        return 11;
+    }
+    return 1;
 }
 
 int handValue(hand_t hand) {
@@ -103,7 +116,7 @@ int handValue(hand_t hand) {
     return value;
 }
 void printHand(hand_t hand) {
-    printf("printHand\n");
+    //printf("printHand\n");
     printf("Hand: [ ");
     for (int i = 0; i < hand.nbOfCards; i++) {
         printCard(hand.cards[i]);
@@ -128,10 +141,7 @@ void startHand(deck_t *deck, player_t *player, dealer_t *dealer) {
     printf("Hand's dealer.\n");
     printf("[ ");
     printCard(dealer->hand.cards[0]);
-    printf(", XX ] Score : %d\n", dealer->hand.cards->val-'0');
-     // Print the player's hand
-    printf("Your Hand.\n");
-    printHand(player->hands[0]); // Print the dealer's hand
+    printf(", XX ] Score : %d\n", cardValue(dealer->hand.cards[0])); // Print the score of the dealer's hand with one card hidden
     // printDeck(*deck); // Print the remaining cards in the deck
 }
 
@@ -144,7 +154,7 @@ void playerTurn(deck_t *deck, player_t *player) {
     printHand(player->hands[player->currentHand]);
     char action;
     hand_t *hand = &(player->hands[player->currentHand]);
-    scanf("%c", &action);
+    scanf(" %c", &action);
     switch (action) {
         case 'S' :
             split(player, deck);
@@ -163,6 +173,7 @@ void playerTurn(deck_t *deck, player_t *player) {
     
 }
 
+
 void updateAction(player_t *player) {
     printf("updateAction\n");
     hand_t *hand = &(player->hands[player->currentHand]);
@@ -178,11 +189,23 @@ void updateAction(player_t *player) {
 }
 
 
-/*void dealerTurn(dealer_t *dealer, deck_t *deck) {
+void dealerTurn(dealer_t *dealer, deck_t *deck) {
     printf("dealerTurn\n");
     while (handValue(dealer->hand) < 17) {
         hit(&(dealer->hand), deck);
     }
-}*/
+}
+void getResult(player_t *player, dealer_t *dealer) {
+    for (int i=0; i < player->nbOfHands; i++) {
+        if (player->hands[i].isBusted) strcpy(player->hands[i].res, "loss");
+        if (dealer->hand.isBusted) strcpy(player->hands[i].res, "win");
+         if (dealer->hand.isBlackjack) {
+            if (player->hands[i].isBlackjack) strcpy(player->hands[i].res, "tie");
+        } else strcpy(player->hands[i].res, "loss");
 
+        if (handValue(dealer->hand) < handValue(player->hands[i])) strcpy(player->hands[i].res, "win");
+        if (handValue(dealer->hand) > handValue(player->hands[i])) strcpy(player->hands[i].res, "loss");
+        else if (handValue(dealer->hand) == handValue(player->hands[i])) strcpy(player->hands[i].res, "tie");
+    }
+}
 
