@@ -40,4 +40,5 @@ void playerTurn(deck_t *deck, player_t *player);
 void updateAction(player_t *player);
 void dealerTurn(dealer_t *dealer, deck_t *deck);
 void getResult(player_t *player, dealer_t *dealer);
+void printResult(player_t player);
 dealer_t newDealer();

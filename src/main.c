@@ -19,6 +19,7 @@ int  main () {
     }
     dealerTurn(&dealer, &deck);
     getResult(&player, &dealer);
-    //printResult(&dealer, &player);
+    printResult(player);
+    printf("\n");
     return 0;
 }

@@ -49,6 +49,7 @@ void doubledown(player_t *player, deck_t *deck) {
     hit(hand, deck);
     hand->isDoubledDown = 1;
     hand->isStanding = 1;
+    printHand(*hand);
     player->currentHand++;
 }
 
@@ -175,15 +176,20 @@ void playerTurn(deck_t *deck, player_t *player) {
 
 
 void updateAction(player_t *player) {
+    if (player->currentHand == player->nbOfHands) return;
     printf("updateAction\n");
     hand_t *hand = &(player->hands[player->currentHand]);
     int score = handValue(*hand);
     if (score > 21) {
         hand->isBusted = 1;
+        printHand(player->hands[player->currentHand]);
+        player->currentHand++;
     }
     else if (score == 21) {
         if (hand->nbOfCards == 2 && hand->isSplit == 0) hand->isBlackjack = 1;
         else hand->isStanding = 1;
+        printHand(player->hands[player->currentHand]);
+        player->currentHand++;
     }
 
 }
@@ -194,6 +200,8 @@ void dealerTurn(dealer_t *dealer, deck_t *deck) {
     while (handValue(dealer->hand) < 17) {
         hit(&(dealer->hand), deck);
     }
+    if (handValue(dealer->hand) > 21) dealer->hand.isBusted = 1;
+    printHand(dealer->hand);
 }
 void getResult(player_t *player, dealer_t *dealer) {
     for (int i=0; i < player->nbOfHands; i++) {
@@ -207,5 +215,16 @@ void getResult(player_t *player, dealer_t *dealer) {
         if (handValue(dealer->hand) > handValue(player->hands[i])) strcpy(player->hands[i].res, "loss");
         else if (handValue(dealer->hand) == handValue(player->hands[i])) strcpy(player->hands[i].res, "tie");
     }
+}
+
+
+void printResult(player_t player ){
+    for (int i=0; i<player.nbOfHands;i++){
+        printf("Hand n°%d /", i+1);
+        for (int j=0; j<strlen(player.hands[i].res); j++){
+            printf("%c",player.hands[i].res[j]);
+        }
+        printf("\n");
+    }   
 }
 
