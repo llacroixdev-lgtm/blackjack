@@ -6,7 +6,6 @@
 player_t newPlayer(int bankroll, int bet, int nbOfHands) {
     player_t p;
     p.bankroll = bankroll;
-    p.bet = bet;
     p.nbOfHands = nbOfHands;
     p.currentHand = 0; // Assuming the player starts with one hand
     for (int i = 0; i < p.nbOfHands; i++) {
@@ -18,7 +17,12 @@ player_t newPlayer(int bankroll, int bet, int nbOfHands) {
         p.hands[i].isSurrendered = 0;
         p.hands[i].isSplit = 0;
         p.hands[i].isInsured = 0;
+        int bet;
+        printf("Place a bet for hand %d :", i+1);
+        scanf("%d", &bet);
+        p.hands[i].bet = bet;
         strcpy(p.hands[i].res, "");
+        p.hands[i].gain = 0;
     }
     return p;
 }
@@ -49,7 +53,7 @@ void doubledown(player_t *player, deck_t *deck) {
     hit(hand, deck);
     hand->isDoubledDown = 1;
     hand->isStanding = 1;
-    printHand(*hand);
+    printHand(*hand, player->currentHand);
     player->currentHand++;
 }
 
@@ -65,7 +69,7 @@ void split(player_t *player, deck_t *deck) {
         newHand.isBusted = 0;
         newHand.isStanding = 0;
         newHand.isDoubledDown = 0;
-        newHand.isSplit = 1;
+        newHand.isSplit = 1;  // hand->isSplit=1;
         hit(&newHand, deck);
         hit(hand, deck);
         player->hands[player->currentHand+1]=newHand;
@@ -116,9 +120,10 @@ int handValue(hand_t hand) {
 
     return value;
 }
-void printHand(hand_t hand) {
+void printHand(hand_t hand, int handIndex) {
     //printf("printHand\n");
-    printf("Hand: [ ");
+    if (handIndex == -1) printf("Dealer hand: [ ");
+    else  printf("Hand %d : [ ", handIndex+1);
     for (int i = 0; i < hand.nbOfCards; i++) {
         printCard(hand.cards[i]);
         if (i < hand.nbOfCards - 1) {
@@ -152,7 +157,7 @@ void startHand(deck_t *deck, player_t *player, dealer_t *dealer) {
 
 void playerTurn(deck_t *deck, player_t *player) {
     printf("playerTurn\n");
-    printHand(player->hands[player->currentHand]);
+    printHand(player->hands[player->currentHand], player->currentHand);
     char action;
     hand_t *hand = &(player->hands[player->currentHand]);
     scanf(" %c", &action);
@@ -182,13 +187,13 @@ void updateAction(player_t *player) {
     int score = handValue(*hand);
     if (score > 21) {
         hand->isBusted = 1;
-        printHand(player->hands[player->currentHand]);
+        printHand(player->hands[player->currentHand], player->currentHand);
         player->currentHand++;
     }
     else if (score == 21) {
         if (hand->nbOfCards == 2 && hand->isSplit == 0) hand->isBlackjack = 1;
         else hand->isStanding = 1;
-        printHand(player->hands[player->currentHand]);
+        printHand(player->hands[player->currentHand], player->currentHand);
         player->currentHand++;
     }
 
@@ -201,30 +206,82 @@ void dealerTurn(dealer_t *dealer, deck_t *deck) {
         hit(&(dealer->hand), deck);
     }
     if (handValue(dealer->hand) > 21) dealer->hand.isBusted = 1;
-    printHand(dealer->hand);
+    printHand(dealer->hand, -1);
 }
 void getResult(player_t *player, dealer_t *dealer) {
-    for (int i=0; i < player->nbOfHands; i++) {
-        if (player->hands[i].isBusted) strcpy(player->hands[i].res, "loss");
-        if (dealer->hand.isBusted) strcpy(player->hands[i].res, "win");
-         if (dealer->hand.isBlackjack) {
-            if (player->hands[i].isBlackjack) strcpy(player->hands[i].res, "tie");
-        } else strcpy(player->hands[i].res, "loss");
+    int dealerVal = handValue(dealer->hand);
 
-        if (handValue(dealer->hand) < handValue(player->hands[i])) strcpy(player->hands[i].res, "win");
-        if (handValue(dealer->hand) > handValue(player->hands[i])) strcpy(player->hands[i].res, "loss");
-        else if (handValue(dealer->hand) == handValue(player->hands[i])) strcpy(player->hands[i].res, "tie");
+    for (int i = 0; i < player->nbOfHands; i++) {
+        int playerVal = handValue(player->hands[i]);
+
+        
+        if (player->hands[i].isBusted) {
+            strcpy(player->hands[i].res, "loss");
+        }
+        
+        else if (dealer->hand.isBusted) {
+            strcpy(player->hands[i].res, "win");
+            player->hands[i].gain = player->hands[i].bet*2;
+        }
+        
+        else if (dealer->hand.isBlackjack || player->hands[i].isBlackjack) {
+            if (dealer->hand.isBlackjack && player->hands[i].isBlackjack) {
+                strcpy(player->hands[i].res, "tie");
+                player->hands[i].gain = player->hands[i].bet;
+
+            } else if (player->hands[i].isBlackjack) {
+                strcpy(player->hands[i].res, "win");
+                player->hands[i].gain = player->hands[i].bet*2.5;
+            } else {
+                strcpy(player->hands[i].res, "loss");
+            }
+        }
+        
+        else {
+            if (playerVal > dealerVal) {
+                strcpy(player->hands[i].res, "win");
+                player->hands[i].gain = player->hands[i].bet*2;
+            } else if (playerVal < dealerVal) {
+                strcpy(player->hands[i].res, "loss");
+            } else {
+                strcpy(player->hands[i].res, "tie");
+                player->hands[i].gain = player->hands[i].bet;
+            }
+        }
     }
 }
 
+int sumBet(player_t player) {
+    int sum;
+    for (int i=0; i<player.nbOfHands; i++) {
+        sum+=player.hands[i].bet;
+    }
+    return sum;
+}
 
-void printResult(player_t player ){
+int sumGain(player_t player) {
+    int sum;
+    for (int i=0; i<player.nbOfHands; i++) {
+        sum+=player.hands[i].gain;
+    }
+    return sum;
+}
+
+
+void printResult(player_t player){
     for (int i=0; i<player.nbOfHands;i++){
         printf("Hand n°%d /", i+1);
         for (int j=0; j<strlen(player.hands[i].res); j++){
             printf("%c",player.hands[i].res[j]);
         }
+        printf(" gain : %d", player.hands[i].gain);
         printf("\n");
-    }   
+    }
+    int sumOfBets=sumBet(player);
+    printf("sumOfBets = %d", sumOfBets);
+    int sumOfGains=sumGain(player);
+    printf("sumOfGains = %d", sumOfGains);
+    if (sumOfBets < sumOfGains) printf("Total loss of %d\n", sumOfGains-sumOfBets);
+    else printf("Total win of %d\n", sumOfGains-sumOfBets);
 }
 
