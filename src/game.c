@@ -214,35 +214,33 @@ void getResult(player_t *player, dealer_t *dealer) {
     for (int i = 0; i < player->nbOfHands; i++) {
         int playerVal = handValue(player->hands[i]);
 
-        
         if (player->hands[i].isBusted) {
             strcpy(player->hands[i].res, "loss");
-        }
-        
+            player->hands[i].gain = 0;
+        } 
         else if (dealer->hand.isBusted) {
             strcpy(player->hands[i].res, "win");
-            player->hands[i].gain = player->hands[i].bet*2;
-        }
-        
+            player->hands[i].gain = player->hands[i].bet * 2;
+        } 
         else if (dealer->hand.isBlackjack || player->hands[i].isBlackjack) {
             if (dealer->hand.isBlackjack && player->hands[i].isBlackjack) {
                 strcpy(player->hands[i].res, "tie");
                 player->hands[i].gain = player->hands[i].bet;
-
             } else if (player->hands[i].isBlackjack) {
                 strcpy(player->hands[i].res, "win");
-                player->hands[i].gain = player->hands[i].bet*2.5;
+                player->hands[i].gain = (int)(player->hands[i].bet * 2.5);
             } else {
                 strcpy(player->hands[i].res, "loss");
+                player->hands[i].gain = 0;
             }
-        }
-        
+        } 
         else {
             if (playerVal > dealerVal) {
                 strcpy(player->hands[i].res, "win");
-                player->hands[i].gain = player->hands[i].bet*2;
+                player->hands[i].gain = player->hands[i].bet * 2;
             } else if (playerVal < dealerVal) {
                 strcpy(player->hands[i].res, "loss");
+                player->hands[i].gain = 0;
             } else {
                 strcpy(player->hands[i].res, "tie");
                 player->hands[i].gain = player->hands[i].bet;
@@ -252,7 +250,7 @@ void getResult(player_t *player, dealer_t *dealer) {
 }
 
 int sumBet(player_t player) {
-    int sum;
+    int sum=0;
     for (int i=0; i<player.nbOfHands; i++) {
         sum+=player.hands[i].bet;
     }
@@ -260,7 +258,7 @@ int sumBet(player_t player) {
 }
 
 int sumGain(player_t player) {
-    int sum;
+    int sum=0;
     for (int i=0; i<player.nbOfHands; i++) {
         sum+=player.hands[i].gain;
     }
@@ -278,10 +276,10 @@ void printResult(player_t player){
         printf("\n");
     }
     int sumOfBets=sumBet(player);
-    printf("sumOfBets = %d", sumOfBets);
+    AFFICHE(sumOfBets);
     int sumOfGains=sumGain(player);
-    printf("sumOfGains = %d", sumOfGains);
-    if (sumOfBets < sumOfGains) printf("Total loss of %d\n", sumOfGains-sumOfBets);
+    AFFICHE(sumOfGains);
+    if (sumOfGains - sumOfBets < 0) printf("Total loss of %d\n", sumOfGains-sumOfBets);
     else printf("Total win of %d\n", sumOfGains-sumOfBets);
 }
 

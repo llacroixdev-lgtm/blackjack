@@ -44,4 +44,5 @@ void getResult(player_t *player, dealer_t *dealer);
 int sumBet(player_t player);
 int sumGain(player_t player);
 void printResult(player_t player);
+#define AFFICHE(a) printf(#a " : %d\n", a);
 dealer_t newDealer();
