@@ -20,8 +20,8 @@
     void fillDeck(deck_t *deck);
     deck_t newDeck (int nbOfDeck);
     
-    void printCard(card_t c);
-    void printDeck(deck_t d);
+    //void printCard(card_t c);
+    //void printDeck(deck_t d);
     void mixDeck(deck_t *deck);
     void remixDeck(deck_t * deck);
     int isEmptyDeck(deck_t * deck);

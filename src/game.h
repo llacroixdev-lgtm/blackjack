@@ -31,7 +31,7 @@ void stay(player_t *player);
 void hit(hand_t *hand, deck_t *deck);
 void doubledown(player_t *player, deck_t *deck);
 void split(player_t *player, deck_t *deck);
-void printHand(hand_t hand, int handIndex);
+//void printHand(hand_t hand, int handIndex);
 int cardValue(card_t card);
 int handValue(hand_t hand);
 
@@ -43,8 +43,8 @@ void dealerTurn(dealer_t *dealer, deck_t *deck);
 void getResult(player_t *player, dealer_t *dealer);
 int sumBet(player_t * player);
 int sumGain(player_t * player);
-void printResult(player_t * player);
-#define AFFICHE(a) printf(#a " : %d \n", a);
+//void printResult(player_t * player);
+//#define AFFICHE(a) printf(#a " : %d \n", a);
 dealer_t newDealer();
 
 void handPlay(deck_t *deck, player_t *player, dealer_t *dealer);

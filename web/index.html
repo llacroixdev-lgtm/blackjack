@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head><meta charset="utf-8"><title>Blackjack</title></head>
+<body>
+  <p>Ouvre la console (F12).</p>
+  <script>
+    var Module = {
+      onRuntimeInitialized: function () {
+        const cardValue = Module.cwrap('api_card_value', 'number', ['number']);
+        console.log('K =', cardValue('K'.charCodeAt(0)));
+        console.log('5 =', cardValue('5'.charCodeAt(0)));
+        console.log('A =', cardValue('A'.charCodeAt(0)));
+      }
+    };
+  </script>
+  <script src="blackjack.js"></script>
+</body>
+</html>

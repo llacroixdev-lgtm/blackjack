@@ -26,7 +26,7 @@ deck_t newDeck (int nbOfDeck) {
     return d;
 }
 
-void printCard(card_t c) {
+/*void printCard(card_t c) {
     printf("%c%c", c.famille, c.val);
 }
 
@@ -39,7 +39,7 @@ void printDeck(deck_t d) {
     }
     printCard(d.card[d.nbOfCards-1]);
     printf("]\n");
-}
+}*/
 
 void mixDeck(deck_t *deck) {
     for (int i = 0; i < deck->nbOfCards-1; i++) { // On parcourt toutes les cartes du deck.
