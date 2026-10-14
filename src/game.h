@@ -18,7 +18,7 @@ typedef struct {
 typedef struct {
     int bankroll;
     int nbOfHands; // Number of hands the player has
-    hand_t hands[4];
+    hand_t hands[20];
     int currentHand; // Assuming a max of 4 hands per player, for now ...
 } player_t;
 
@@ -26,7 +26,7 @@ typedef struct {
     hand_t hand;
 } dealer_t;
 
-player_t newPlayer(int bankroll, int bet, int nbOfHands);
+player_t newPlayer(int bankroll);
 void stay(player_t *player);
 void hit(hand_t *hand, deck_t *deck);
 void doubledown(player_t *player, deck_t *deck);
@@ -41,7 +41,12 @@ void playerTurn(deck_t *deck, player_t *player);
 void updateAction(player_t *player);
 void dealerTurn(dealer_t *dealer, deck_t *deck);
 void getResult(player_t *player, dealer_t *dealer);
-int sumBet(player_t player);
-int sumGain(player_t player);
-void printResult(player_t player);
+int sumBet(player_t * player);
+int sumGain(player_t * player);
+void printResult(player_t * player);
+#define AFFICHE(a) printf(#a " : %d \n", a);
 dealer_t newDealer();
+
+void handPlay(deck_t *deck, player_t *player, dealer_t *dealer);
+void newPlayerHand(player_t * player);
+hand_t createHand();

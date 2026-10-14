@@ -20,7 +20,7 @@ void fillDeck(deck_t *deck) {
 deck_t newDeck (int nbOfDeck) {
     deck_t d;
     d.nbOfDeck=nbOfDeck;
-    d.cardsLength=DECKOFCARDS*nbOfDeck;
+    d.nbOfCards=DECKOFCARDS*nbOfDeck;
     d.currentCard=0;
     fillDeck(&d);
     return d;
@@ -33,20 +33,31 @@ void printCard(card_t c) {
 void printDeck(deck_t d) {
     printf("Number of deck used : %d\n", d.nbOfDeck);
     printf("[ ");
-    for (int i=d.currentCard; i<d.cardsLength-1; i++) {
+    for (int i=d.currentCard; i<d.nbOfCards-1; i++) {
         printCard(d.card[i]);
         printf(", ");
     }
-    printCard(d.card[d.cardsLength-1]);
+    printCard(d.card[d.nbOfCards-1]);
     printf("]\n");
 }
 
 void mixDeck(deck_t *deck) {
-    for (int i = 0; i < deck->cardsLength; i++) { // On parcourt toutes les cartes du deck.
-        int j = rand() % deck->cardsLength; // On choisit un indice aléatoire pour mélanger les cartes.
+    for (int i = 0; i < deck->nbOfCards-1; i++) { // On parcourt toutes les cartes du deck.
+        int j = rand() % ((deck->nbOfCards-1) - i+1)+i; // On choisit un indice aléatoire pour mélanger les cartes.
         card_t temp = deck->card[i]; // echange classique de deux cartes
         deck->card[i] = deck->card[j];
         deck->card[j] = temp;
     }
 }
+
+void remixDeck(deck_t * deck) {
+    if (deck->currentCard > deck->nbOfCards/3*2)
+    deck -> currentCard = 0;
+    mixDeck(deck);
+}
+
+int isEmptyDeck(deck_t * deck){
+    return (deck->nbOfCards-deck->currentCard > 0) ? 0 : 1;
+}
+
 

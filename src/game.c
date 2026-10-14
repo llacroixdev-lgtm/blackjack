@@ -3,27 +3,11 @@
 #include "deck.h"
 #include "game.h"
 
-player_t newPlayer(int bankroll, int bet, int nbOfHands) {
+player_t newPlayer(int bankroll) {
     player_t p;
     p.bankroll = bankroll;
-    p.nbOfHands = nbOfHands;
+    p.nbOfHands = 0;
     p.currentHand = 0; // Assuming the player starts with one hand
-    for (int i = 0; i < p.nbOfHands; i++) {
-        p.hands[i].nbOfCards = 0;
-        p.hands[i].isBlackjack = 0;
-        p.hands[i].isBusted = 0;
-        p.hands[i].isStanding = 0;
-        p.hands[i].isDoubledDown = 0;
-        p.hands[i].isSurrendered = 0;
-        p.hands[i].isSplit = 0;
-        p.hands[i].isInsured = 0;
-        int bet;
-        printf("Place a bet for hand %d :", i+1);
-        scanf("%d", &bet);
-        p.hands[i].bet = bet;
-        strcpy(p.hands[i].res, "");
-        p.hands[i].gain = 0;
-    }
     return p;
 }
 
@@ -34,6 +18,41 @@ dealer_t newDealer() {
     d.hand.isBusted = 0;
     d.hand.isStanding = 0;
     return d;
+}
+
+void newPlayerHand(player_t * player) {
+    printf("How many hands you want to play ?");
+    int n;
+    scanf("%d", &n);
+    player->nbOfHands=n;
+    for (int i=0;i<n;i++) {
+        hand_t h;
+        h=createHand();
+        int bet;
+        printf("Place a bet for hand %d :", i+1);
+        scanf("%d", &bet);
+        if (bet > player->bankroll) h.bet = player->bankroll;
+        else h.bet = bet;
+        AFFICHE(h.bet);
+        player->hands[i]=h;
+        player->bankroll-=h.bet;
+    }
+}
+
+hand_t createHand(){
+    
+    hand_t h;
+    h.nbOfCards = 0;
+    h.isBlackjack = 0;
+    h.isBusted = 0;
+    h.isStanding = 0;
+    h.isDoubledDown = 0;
+    h.isSurrendered = 0;
+    h.isSplit = 0;
+    h.isInsured = 0;
+    strcpy(h.res, "");
+    h.gain = 0;
+    return h;
 }
 
 void hit(hand_t *hand, deck_t *deck) {
@@ -53,28 +72,35 @@ void doubledown(player_t *player, deck_t *deck) {
     hit(hand, deck);
     hand->isDoubledDown = 1;
     hand->isStanding = 1;
+    if (player->bankroll >= hand->bet) {
+        player->bankroll-=hand->bet;
+        hand->bet*=2;
+    }
     printHand(*hand, player->currentHand);
-    player->currentHand++;
 }
 
 void split(player_t *player, deck_t *deck) {
-    printf("split\n");
-    //if (hand->cards[0].val==hand->cards[1].val) {
-        hand_t newHand;
-        hand_t *hand=&(player->hands[player->currentHand]);
+    //printf("split\n");
+    hand_t *hand=&(player->hands[player->currentHand]);
+    if (cardValue(hand->cards[0])==cardValue(hand->cards[1]) && hand->nbOfCards == 2) {
+        hand_t newHand = createHand();
         newHand.cards[0]=hand->cards[1];
         hand->nbOfCards--;
         hand->isSplit=1;
         newHand.nbOfCards = 1;
-        newHand.isBusted = 0;
-        newHand.isStanding = 0;
-        newHand.isDoubledDown = 0;
         newHand.isSplit = 1;  // hand->isSplit=1;
+        newHand.bet=hand->bet;
+        player->bankroll-=newHand.bet;
         hit(&newHand, deck);
         hit(hand, deck);
-        player->hands[player->currentHand+1]=newHand;
         player->nbOfHands++;
-    //}
+        if (player->currentHand != player->nbOfHands-1)
+            for (int i=player->nbOfHands-2;i>=player->currentHand+1;i--) {
+                player->hands[i+1]=player->hands[i];
+            }
+        player->hands[player->currentHand+1]=newHand;
+        
+    }
 
 }
 
@@ -134,8 +160,7 @@ void printHand(hand_t hand, int handIndex) {
 }
 
 void startHand(deck_t *deck, player_t *player, dealer_t *dealer) {
-    printf("startHand\n");
-    mixDeck(deck);
+    //printf("startHand\n");
     for (int i = 0;i<player->nbOfHands;i++){
         hit(&player->hands[i], deck);
     }
@@ -156,7 +181,7 @@ void startHand(deck_t *deck, player_t *player, dealer_t *dealer) {
 }*/
 
 void playerTurn(deck_t *deck, player_t *player) {
-    printf("playerTurn\n");
+    //printf("playerTurn\n");
     printHand(player->hands[player->currentHand], player->currentHand);
     char action;
     hand_t *hand = &(player->hands[player->currentHand]);
@@ -182,7 +207,7 @@ void playerTurn(deck_t *deck, player_t *player) {
 
 void updateAction(player_t *player) {
     if (player->currentHand == player->nbOfHands) return;
-    printf("updateAction\n");
+    //printf("updateAction\n");
     hand_t *hand = &(player->hands[player->currentHand]);
     int score = handValue(*hand);
     if (score > 21) {
@@ -196,13 +221,14 @@ void updateAction(player_t *player) {
         printHand(player->hands[player->currentHand], player->currentHand);
         player->currentHand++;
     }
+    else if (hand->isDoubledDown) player->currentHand++;
 
 }
 
 
 void dealerTurn(dealer_t *dealer, deck_t *deck) {
-    printf("dealerTurn\n");
-    while (handValue(dealer->hand) < 17) {
+    //printf("dealerTurn\n");
+    while (handValue(dealer->hand) <= 17) {
         hit(&(dealer->hand), deck);
     }
     if (handValue(dealer->hand) > 21) dealer->hand.isBusted = 1;
@@ -249,39 +275,54 @@ void getResult(player_t *player, dealer_t *dealer) {
             }
         }
     }
+    player->bankroll+=sumGain(player);
 }
 
-int sumBet(player_t player) {
-    int sum;
-    for (int i=0; i<player.nbOfHands; i++) {
-        sum+=player.hands[i].bet;
+int sumBet(player_t * player) {
+    int sum=0;
+    for (int i=0; i<player->nbOfHands; i++) {
+        sum+=player->hands[i].bet;
     }
     return sum;
 }
 
-int sumGain(player_t player) {
-    int sum;
-    for (int i=0; i<player.nbOfHands; i++) {
-        sum+=player.hands[i].gain;
+int sumGain(player_t * player) {
+    int sum=0;
+    for (int i=0; i<player->nbOfHands; i++) {
+        sum+=player->hands[i].gain;
     }
     return sum;
 }
 
 
-void printResult(player_t player){
-    for (int i=0; i<player.nbOfHands;i++){
+void printResult(player_t * player){
+    for (int i=0; i<player->nbOfHands;i++){
         printf("Hand n°%d /", i+1);
-        for (int j=0; j<strlen(player.hands[i].res); j++){
-            printf("%c",player.hands[i].res[j]);
+        for (int j=0; j<strlen(player->hands[i].res); j++){
+            printf("%c",player->hands[i].res[j]);
         }
-        printf(" gain : %d", player.hands[i].gain);
+        printf(" gain : %d", player->hands[i].gain);
         printf("\n");
     }
     int sumOfBets=sumBet(player);
-    printf("sumOfBets = %d", sumOfBets);
+    AFFICHE(sumOfBets);
     int sumOfGains=sumGain(player);
-    printf("sumOfGains = %d", sumOfGains);
-    if (sumOfBets < sumOfGains) printf("Total loss of %d\n", sumOfGains-sumOfBets);
-    else printf("Total win of %d\n", sumOfGains-sumOfBets);
+    AFFICHE(sumOfGains);
+    if (sumOfGains - sumOfBets < 0) printf("Total of %d\n", sumOfGains-sumOfBets);
+    else printf("Total of +%d\n", sumOfGains-sumOfBets);
+    AFFICHE(player->bankroll);
+}
+
+void handPlay(deck_t * deck, player_t * player, dealer_t * dealer) {
+    startHand(deck, player, dealer);
+    updateAction(player);
+    while (player->currentHand < player->nbOfHands) {
+        playerTurn(deck, player);
+        updateAction(player);
+    }
+    dealerTurn(dealer, deck);
+    getResult(player, dealer);
+    printResult(player);
+    printf("\n");
 }
 

@@ -6,20 +6,15 @@
 int  main () {
     srand(time(NULL));
     deck_t deck = newDeck(1);
-    int nbOfHands;
-    scanf("%d", &nbOfHands);
-    player_t player = newPlayer(1000, 50, nbOfHands);
+    mixDeck(&deck);
+    player_t player = newPlayer(1000);
     dealer_t dealer = newDealer();
-
-    startHand(&deck, &player, &dealer);
-    updateAction(&player);
-    while (player.currentHand < player.nbOfHands) {
-        playerTurn(&deck, &player);
-        updateAction(&player);
+    while (player.bankroll > 0 && !isEmptyDeck(&deck)) {
+        newPlayerHand(&player);
+        handPlay(&deck, &player, &dealer);
+        player.currentHand=0;
+        dealer.hand=createHand();
+        remixDeck(&deck);
     }
-    dealerTurn(&dealer, &deck);
-    getResult(&player, &dealer);
-    printResult(player);
-    printf("\n");
     return 0;
 }
